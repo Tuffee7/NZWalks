@@ -1,6 +1,6 @@
 ﻿namespace NZWalks.API.Models.DTO
 {
-    public class UpdateRegionRequestDTO
+    public class UpdateRegionRequestDto
     {
         public string Code { get; set; }
 
