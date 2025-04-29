@@ -104,7 +104,7 @@ namespace NZWalks.API.Controllers
 
 
         // POST: To create a new region by a client
-        // POST: 
+        // POST: https://localhost:7238/api/Regions/
         [HttpPost]
         public IActionResult CreateRegion([FromBody]AddRegionRequestDTO addRegionRequestDTO)
         {
@@ -131,5 +131,80 @@ namespace NZWalks.API.Controllers
 
             return CreatedAtAction(nameof(GetRegionByID), new { id = regionDTO.ID}, regionDTO);
         }
+
+        /// <summary>
+        /// PUT: To update an existing region in Database
+        /// 
+        /// PUT: https://localhost:7238/api/Regions/id
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <param name="updateRegionRequestDTO"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("{id:guid}")]
+        public IActionResult UpdateRegion([FromRoute] Guid id, [FromBody]UpdateRegionRequestDTO updateRegionRequestDTO)
+        {
+            // Check if region exist in DB
+            var updateRegionDomain = dbContext.Regions.FirstOrDefault(x => x.ID == id);
+
+            // Return not found if region does not exist.
+            if (updateRegionDomain == null)
+                return NotFound();
+
+            // Mapping DTO to Domain model 
+            updateRegionDomain.Code = updateRegionRequestDTO.Code;
+            updateRegionDomain.Name = updateRegionRequestDTO.Name;
+            updateRegionDomain.RegionImageUrl = updateRegionRequestDTO.RegionImageUrl;
+
+            // Saving Domain into DB to update DB via Entity Framework.
+            dbContext.SaveChanges();
+
+            // Mapping domain model to DTO
+            var regionRequestDTO = new RegionDTO
+            {
+                ID = updateRegionDomain.ID,
+                Code = updateRegionDomain.Code,
+                Name = updateRegionDomain.Name,
+                RegionImageUrl = updateRegionDomain.RegionImageUrl
+            };
+
+            return Ok(regionRequestDTO);
+        }
+
+        /// <summary>
+        /// To Delete a region
+        /// 
+        /// DELETE: https://localhost:7238/api/Regions/id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("{id:guid}")]
+        public IActionResult DeleteRegion([FromRoute] Guid id)
+        {
+            // Check if region exist in DB
+            var deleteRegionDomain = dbContext.Regions.FirstOrDefault(x => x.ID == id);
+
+            // Return not found if region does not exist.
+            if (deleteRegionDomain == null)
+                return NotFound();
+
+            // Remove will delete the Region from Domain model
+            dbContext.Regions.Remove(deleteRegionDomain);
+            // Saving will save changes to DB. If it is removed from domain model and not Saved then it won't delete from DB
+            // and hence restarting APP will once again show the region.
+            dbContext.SaveChanges();
+
+            var regionRequestDTO = new RegionDTO
+            {
+                ID = deleteRegionDomain.ID,
+                Code = deleteRegionDomain.Code,
+                Name = deleteRegionDomain.Name,
+                RegionImageUrl = deleteRegionDomain.RegionImageUrl
+            };
+
+            return Ok(regionRequestDTO);
+        }
+
     }
 }
